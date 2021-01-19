@@ -6,6 +6,7 @@ import pynput
 from PIL import ImageGrab
 from time import sleep
 import threading
+import time
 
 exiting = False
 put_loot_away = False
@@ -54,7 +55,6 @@ def hook_keyboard():
         global put_loot_away
         global pick_up_item
         try:
-            print('{}'.format(key.char))
             if key.char == '/':
                 put_loot_away = True
             elif key.char == '`':
@@ -151,6 +151,49 @@ def PutLootAway():
             
     keyboard.release(Key.ctrl_l.value)
 
+last_flask_time_s = 0
+def DoFlasks():
+    global last_flask_time_s
+    current_time_s = epoch_time = int(time.time())
+    time_since_last = current_time_s - last_flask_time_s
+    time_between_presses = 3
+    if time_since_last < time_between_presses:
+        return
+    time_since_last = current_time_s
+
+    image = ImageGrab.grab()
+    
+    mana_coordinate = (3275, 1350)
+    mana_pixel = image.getpixel(mana_coordinate)
+    need_mana = False
+    # if not blue, need mana
+    if mana_pixel[0] != 12 or mana_pixel[1] != 70 or mana_pixel[2] != 144:
+        need_mana = True
+        keyboard.press('2')
+        keyboard.release('2')
+        sleep(0.2)
+        keyboard.press('4')
+        keyboard.release('4')
+        sleep(0.1)
+        keyboard.press('5')
+        keyboard.release('5')
+    else:
+        keyboard.press('3')
+        keyboard.release('3')
+        keyboard.press('e')
+        keyboard.release('e')
+        
+    life_coordinate = (160, 1225)
+    life_pixel = image.getpixel(life_coordinate)
+    need_life = False
+    # if not blue, need mana
+    if life_pixel[0] != 168 or life_pixel[1] != 47 or life_pixel[2] != 53:
+        need_life = True
+        keyboard.press('1')
+        keyboard.release('1')
+    
+    
+    
 while True:
     if item_coordinate and pick_up_item:
         move_mouse(item_coordinate[0], item_coordinate[1])
@@ -159,4 +202,5 @@ while True:
     if put_loot_away:
         PutLootAway()
         put_loot_away = False
+    DoFlasks()
     sleep(0.5)
