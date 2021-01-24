@@ -11,6 +11,7 @@ import time
 exiting = False
 put_loot_away = False
 pick_up_item = False
+do_flasks = False
 item_coordinate = None
 mouse = MouseController()
 keyboard = Controller()
@@ -54,11 +55,14 @@ def hook_keyboard():
         global exiting
         global put_loot_away
         global pick_up_item
+        global do_flasks
         try:
             if key.char == '/':
                 put_loot_away = True
             elif key.char == '`':
                 exiting = True
+            elif key.char == '.':
+                do_flasks = not do_flasks
             elif key.char == '\\':
                 pick_up_item = not pick_up_item
         except:
@@ -153,6 +157,8 @@ def PutLootAway():
 
 last_flask_time_s = 0
 def DoFlasks():
+    if not do_flasks:
+        return
     global last_flask_time_s
     current_time_s = epoch_time = int(time.time())
     time_since_last = current_time_s - last_flask_time_s
