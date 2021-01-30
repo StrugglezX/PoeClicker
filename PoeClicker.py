@@ -60,12 +60,17 @@ def hook_keyboard():
             if key.char == '/':
                 put_loot_away = True
             elif key.char == '`':
+                print('should exit')
+                exiting = True
+            elif key.char == 'm':
+                print('should exit')
                 exiting = True
             elif key.char == '.':
                 do_flasks = not do_flasks
             elif key.char == '\\':
                 pick_up_item = not pick_up_item
-        except:
+        except Exception as e:
+            print('exception occured {}', e)
             return
 
     # Collect events until released
@@ -131,9 +136,9 @@ def PutLootAway():
     rows = 5
     columns = 11
     global exiting
+    exiting = False
     image = ImageGrab.grab()
     
-    keyboard.press(Key.ctrl_l.value)
     sleep(0.5)
     
     for row in range(0,rows):
@@ -146,14 +151,16 @@ def PutLootAway():
             current_x = start_x - (column * square_size)
             coordinate = (current_x, current_y)
             pixel = image.getpixel(coordinate)
-            print(pixel)
             if pixel[0] < 15 and pixel[1] < 15 and pixel[2] < 15:
                 continue
             move_mouse(current_x, current_y)
-            sleep(0.33)
+            sleep(0.1)
+            keyboard.press(Key.ctrl_l.value)
+            sleep(0.1)
             ctrl_left_mouse_click()
+            sleep(0.1)
+            keyboard.release(Key.ctrl_l.value)
             
-    keyboard.release(Key.ctrl_l.value)
 
 last_flask_time_s = 0
 def DoFlasks():
@@ -162,19 +169,20 @@ def DoFlasks():
     global last_flask_time_s
     current_time_s = epoch_time = int(time.time())
     time_since_last = current_time_s - last_flask_time_s
-    time_between_presses = 3
+    time_between_presses = 2
+    print('too soon {}?'.format(time_since_last) )
     if time_since_last < time_between_presses:
+        print('too soon !~!!!'.format(time_since_last) )
         return
-    time_since_last = current_time_s
+    last_flask_time_s = current_time_s
 
     image = ImageGrab.grab()
     
     mana_coordinate = (3275, 1350)
     mana_pixel = image.getpixel(mana_coordinate)
-    need_mana = False
     # if not blue, need mana
+    print('mna {}'.format(mana_pixel))
     if mana_pixel[0] != 12 or mana_pixel[1] != 70 or mana_pixel[2] != 144:
-        need_mana = True
         keyboard.press('2')
         keyboard.release('2')
         sleep(0.2)
@@ -186,6 +194,7 @@ def DoFlasks():
     else:
         keyboard.press('3')
         keyboard.release('3')
+        sleep(0.1)
         keyboard.press('e')
         keyboard.release('e')
         
@@ -197,6 +206,23 @@ def DoFlasks():
         need_life = True
         keyboard.press('1')
         keyboard.release('1')
+        
+    haste_coordinate = (2895, 1395)
+    haste_pixel = image.getpixel(haste_coordinate)
+    expected_haste = (145, 163, 52)
+    if haste_pixel == expected_haste:
+        keyboard.press('w')
+        keyboard.release('w')
+        sleep(0.1)
+        
+    immortal_coordinate = (2895, 1395)
+    immortal_pixel = image.getpixel(immortal_coordinate)
+    expected_immortal = (88, 111, 64)
+    if expected_immortal == immortal_pixel:
+        keyboard.press('r')
+        keyboard.release('r')
+        sleep(0.1)
+        
     
     
     
