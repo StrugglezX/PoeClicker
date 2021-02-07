@@ -165,117 +165,65 @@ def PutLootAway():
             keyboard.release(Key.ctrl_l.value)
             
 
-class TimedSkill:
-    def __init__(self, keychar, interval, debug=False):
-        self._keychar = keychar
-        self._interval = interval
-        self._last_pressed_time = 0
-        self._debug = debug
-        
-    def PressIfElapsed(self, current_time):
-        elapsed_time = current_time - self._last_pressed_time
-        if self._debug:
-            print('elapsed_time {} = current_time {} - self._last_pressed_time {}'.format(elapsed_time, current_time, self._last_pressed_time))
-        if elapsed_time > self._interval:
-            self._last_pressed_time = current_time
-            keyboard.press( self._keychar )
-            keyboard.release( self._keychar )
-            sleep(0.1)
-            
-class PixelSkill:
-    def __init__(self, keychar, coordinate, expected_pixel_color, delta=5, debug=False):
-        self._keychar = keychar
-        self._coordinate = coordinate
-        self._expected_pixel_color = expected_pixel_color
-        self._delta = delta
-        self._debug = debug
-        
-    def PressIfReady(self, image):
-        actual_pixel = image.getpixel(self._coordinate)
-        r_diff = abs(self._expected_pixel_color[0] - actual_pixel[0])
-        g_diff = abs(self._expected_pixel_color[1] - actual_pixel[1])
-        b_diff = abs(self._expected_pixel_color[2] - actual_pixel[2])
-        
-        if self._debug:
-            print('\n')
-            print('_keychar {}'.format(self._keychar))
-            print('_delta {}'.format(self._delta))
-            print('actual_pixel {}'.format(actual_pixel))
-            print('_expected_pixel_color {}'.format(self._expected_pixel_color))
-            
-        if r_diff < self._delta and g_diff < self._delta and b_diff < self._delta:
-            keyboard.press( self._keychar )
-            keyboard.release( self._keychar )
-            sleep(0.1)
-               
-class TimedMissingPixelSkill:
-    def __init__(self, keychar, interval, coordinate, expected_pixel_color, delta=5, debug=False):
-        self._keychar = keychar
-        self._interval = interval
-        self._last_pressed_time = 0
-        self._coordinate = coordinate
-        self._expected_pixel_color = expected_pixel_color
-        self._delta = delta
-        self._debug = debug
-        
-    def PressIfReady(self, current_time, image):
-        elapsed_time = current_time - self._last_pressed_time
-        actual_pixel = image.getpixel(self._coordinate)
-        r_diff = abs(self._expected_pixel_color[0] - actual_pixel[0])
-        g_diff = abs(self._expected_pixel_color[1] - actual_pixel[1])
-        b_diff = abs(self._expected_pixel_color[2] - actual_pixel[2])
-        
-        if self._debug:
-            print('\n')
-            print('_keychar {}'.format(self._keychar))
-            print('_delta {}'.format(self._delta))
-            print('actual_pixel {}'.format(actual_pixel))
-            print('_expected_pixel_color {}'.format(self._expected_pixel_color))
-            print('elapsed_time {} = current_time {} - self._last_pressed_time {}'.format(elapsed_time, current_time, self._last_pressed_time))
-            
-        if elapsed_time > self._interval and (r_diff > self._delta or g_diff > self._delta or b_diff > self._delta ):
-            self._last_pressed_time = current_time
-            keyboard.press( self._keychar )
-            keyboard.release( self._keychar )
-            sleep(0.1)
-            
-            
-onslaught_skill = TimedSkill('2', 5.0)
-movement_skill = TimedSkill('3', 5.0)
-hybrid_skill = TimedSkill('4', 3.5)
-mana_skill = TimedSkill('5', 5.0)
-
-haste_coordinate = (2895, 1395)
-expected_haste = (145, 163, 52)
-haste_skill = PixelSkill('w', haste_coordinate, expected_haste)
-
-phase_skill = TimedSkill('e', 3.0)
-immortal_skill = TimedSkill('r', 3.0)
-
-life_coordinate = (160, 1225)
-expected_life = (168, 46, 53)
-life_skill = TimedMissingPixelSkill('1', 4.0, life_coordinate, expected_life)
-            
 last_flask_time_s = 0
 def DoFlasks():
     if not do_flasks:
         return
     global last_flask_time_s
     current_time_s = epoch_time = int(time.time())
+    time_since_last = current_time_s - last_flask_time_s
+    time_between_presses = 2
+    print('too soon {}?'.format(time_since_last) )
+    if time_since_last < time_between_presses:
+        print('too soon !~!!!'.format(time_since_last) )
+        return
+    last_flask_time_s = current_time_s
 
     image = ImageGrab.grab()
     
-    onslaught_skill.PressIfElapsed(current_time_s)
-    movement_skill.PressIfElapsed(current_time_s)
-    hybrid_skill.PressIfElapsed(current_time_s)
-    mana_skill.PressIfElapsed(current_time_s)
-    phase_skill.PressIfElapsed(current_time_s)
-    immortal_skill.PressIfElapsed(current_time_s)
-    
-    haste_skill.PressIfReady(image)
-    
-    life_skill.PressIfReady(current_time_s, image)
+    mana_coordinate = (3275, 1350)
+    mana_pixel = image.getpixel(mana_coordinate)
+    # if not blue, need mana
+    print('mna {}'.format(mana_pixel))
+    if mana_pixel[0] != 12 or mana_pixel[1] != 69 or mana_pixel[2] != 144:
+        keyboard.press('5')
+        keyboard.release('5')
+        sleep(0.2)
+    else:
+        keyboard.press('3')
+        keyboard.release('3')
         
+    life_coordinate = (160, 1225)
+    life_pixel = image.getpixel(life_coordinate)
+    print('life_pixel {}'.format(life_pixel))
+    need_life = False
+    # if not blue, need mana
+    if life_pixel[0] != 168 or life_pixel[1] != 46 or life_pixel[2] != 53:
+        need_life = True
+        keyboard.press('1')
+        keyboard.release('1')
+        
+    '''
+    haste_coordinate = (2895, 1395)
+    haste_pixel = image.getpixel(haste_coordinate)
+    expected_haste = (145, 163, 52)
+    if haste_pixel == expected_haste:
+        keyboard.press('w')
+        keyboard.release('w')
+        sleep(0.1)
+        
+    immortal_coordinate = (2895, 1395)
+    immortal_pixel = image.getpixel(immortal_coordinate)
+    expected_immortal = (88, 111, 64)
+    if expected_immortal == immortal_pixel:
+        keyboard.press('r')
+        keyboard.release('r')
+        sleep(0.1)
+    '''
+    return
+        
+    
+    
     
 while True:
     if item_coordinate and pick_up_item:
@@ -286,4 +234,4 @@ while True:
         PutLootAway()
         put_loot_away = False
     DoFlasks()
-    sleep(0.1)
+    sleep(0.5)
